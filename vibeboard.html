@@ -11,6 +11,12 @@
 	  Buttplug.buttplugInit().then(() => console.log("Library loaded"));
 	</script> -->
 	<script lang="javascript">
+	async function scanForDevices() {
+  
+	  // Now that everything is set up, we can scan.
+	  await client.startScanning();
+	};
+
 
 	var ready = (callback) => {
     	if (document.readyState != "loading") callback();
@@ -26,11 +32,13 @@
 	var backgroundSounds = [["./sounds/background/white-noise.mp3", "White Noise"],
 	["./sounds/background/pink-noise.mp3", "Pink Noise"],
 	["./sounds/background/binaural-204Hz.mp3", "Binaural 204Hz"],
-	["./sounds/background/binaural-154hz.mp3", "Binaural 154Hz"]];
+	["./sounds/background/binaural-154Hz.mp3", "Binaural 154Hz"]];
 
-	clipSounds = [["./sounds/clips/chirp.mp3","Chirp", "clip0"],
+	var clipSounds = [["./sounds/clips/chirp.mp3","Chirp", "clip0"],
 	["./sounds/clips/drum.mp3", "Drum", "clip1"],
-	["./sounds./clips/hawk.mp3", "Hawk", "clip2"]];
+	["./sounds/clips/hawk.mp3", "Hawk", "clip2"]];
+
+  var devices = [];
 
 	function readTemplate(){
 		var fileName = "template.txt";
@@ -39,7 +47,11 @@
 	}
 
 	async function vbInit(){
+	  //initialize Buttplug.io
 	  await Buttplug.buttplugInit();
+
+
+	  //add controls for background sounds
           const backgrSoundControl = document.getElementById("bkgrSndCon");
           var backgrSndControlLabel = document.createElement('label');
           backgrSndControlLabel.htmlFor = "bkgrSndSel";
@@ -47,7 +59,7 @@
 
           backgrSoundControl.appendChild(backgrSndControlLabel);
           var backgrAudio = new Audio('./sounds/background/white-noise.mp3');
-	  backgrAudio.id = "bkgrAudio";
+				  backgrAudio.id = "bkgrAudio";
           backgrSoundControl.appendChild(backgrAudio);
 
           var backgrSoundSelector = document.createElement('select');
@@ -91,68 +103,96 @@
 		clipControlLabel.innerHTML = clipSounds[j][1];
 		clipButtons.appendChild(clipControlLabel);
 		var clipAudio = new Audio(clipSounds[j][0]);
+		clipAudio.id=clipSounds[j][2] + "Sound";
 		clipButtons.append(clipAudio);
 		clipButton = document.createElement('button');
-		clipButton.className="btn btn-outline-secondary btn-lg";
 		clipButton.textContent = ('Play');
-		clipButton.addEventListener('click', playClipAudio(j));
+		clipButton.id=clipSounds[j][2];
+		clipButton.className="btn btn-outline-secondary btn-lg";
+		clipButton.addEventListener('click', playClipAudio);
 		clipButtons.appendChild(clipButton);
 
 	  }//end for (var j in clipSounds)
 
-//          backgrSoundControl.insertBefore(backgrSndControlLabel, backgrSoundSelector);
-          }
+  }
 
 	async function bpConnect(){
 
-	  var serverAddress = document.getElementById("bpcs");
-	  client = new Buttplug.ButtplugClient("Vibeboard");
-          var button = document.getElementById("connect");
+	  var button = document.getElementById("connectButton");
+		var scanButton = document.getElementById("scanButton");
 
+		var bpioControlDiv = document.getElementById("bpioCon");
 
-	  // Set up our DeviceAdded/DeviceRemoved event handlers before connecting. If
-	  // devices are already held to the server when we connect to it, we'll get
-	  // "deviceadded" events on successful connect.
-	  client.addListener("deviceadded", (device) => {
-	    console.log(`Device Connected: ${device.Name}`);
-	    console.log("Client currently knows about these devices:");
-	    client.Devices.forEach((device) => console.log(`- ${device.Name}`));
-	  });
-	  client
-	    .addListener("deviceremoved", (device) => console.log(`Device Removed: ${device.Name}`));
+		if (button.textContent == "Connect"){
+		  var serverAddress = document.getElementById("intifaceAddr");
+		  client = new Buttplug.ButtplugClient("Vibeboard");
 	
-	  // After you've created a connector, the connection looks the same no
-	  // matter what, though the errors thrown may be different.
-	  let connector = new Buttplug.ButtplugWebsocketConnectorOptions();
 	
-	  // This is the default insecure address for Intiface Desktop
-	  // (https://intiface.com/desktop). You can connect to it via Chrome, but
-	  // Safari/Firefox will require secure certs (covered later).
-	  connector.address = serverAddress;
-	
-	  // Now we connect. If anything goes wrong here, we'll either throw
-	  //
-	  // - A ButtplugClientConnectionException if there's a problem with
-	  //   the Connector, like the network address being wrong, server not
-	  //   being up, etc.
-	  // - A ButtplugHandshakeException if there is a client/server version
-	  //   mismatch.
-	  try {
-	    await client.connect(connector);
-	  }
-	  catch (ex)
-	  {
+		  // Set up our DeviceAdded/DeviceRemoved event handlers before connecting. If
+		  // devices are already held to the server when we connect to it, we'll get
+		  // "deviceadded" events on successful connect.
+		  client.addListener("deviceadded", (device) => {
+		    console.log(`Device Connected: ${device.Name}`);
+		    console.log("Client currently knows about these devices:");
+		    client.Devices.forEach((device) => console.log(`- ${device.Index}: ${device.Name}`));
+				var bpioDeviceControl = document.createElement("button");
+				bpioDeviceControl.textContent = device.Name;
+				bpioDeviceControl.id = device.Name;
+				bpioControlDiv.appendChild(bpioDeviceControl);
+			  devices[device.Index] = device.Name;
+		  });
+		  client
+		    .addListener("deviceremoved", (device) => { 
+					console.log(`Device Removed: ${device.Name}`)
+
+					bpioControlDiv.removeChild(document.getElementById(device.Name));
+					});
+		
+		  // After you've created a connector, the connection looks the same no
+		  // matter what, though the errors thrown may be different.
+		  let connector = new Buttplug.ButtplugWebsocketConnectorOptions();
+		
+		  // This is the default insecure address for Intiface Desktop
+		  // (https://intiface.com/desktop). You can connect to it via Chrome, but
+		  // Safari/Firefox will require secure certs (covered later).
+		  connector.address = serverAddress;
+		
+		  // Now we connect. If anything goes wrong here, we'll either throw
+		  //
+		  // - A ButtplugClientConnectionException if there's a problem with
+		  //   the Connector, like the network address being wrong, server not
+		  //   being up, etc.
+		  // - A ButtplugHandshakeException if there is a client/server version
+		  //   mismatch.
+		  try {
+		    await client.connect(connector);
+		  }
+		  catch (ex)
+		  {
 	    // If our connection failed, because the server wasn't turned on, SSL/TLS
 	    // wasn't turned off, etc, we'll just print and exit here. This will most
 	    // likely be a wrapped exception.
 	    //
 	    // This could also mean our client is newer than our server, and we need to
 	    // upgrade the server we're connecting to.
-	    console.log(ex);
-	  }
+		    console.log(ex);
+		  }
 	
-          console.log("Connected!"); 
-          button.txtContent = "Disconnect";
+      console.log("Connected!"); 
+      button.textContent = "Disconnect";
+			scanButton.disabled = false;
+		}
+		else{
+			try{
+				await client.disconnect();
+			}
+			catch (ex){
+				console.log(ex);
+			}
+			console.log("Disconnected!");
+			button.textContent = "Connect";
+			scanButton.disabled = true;
+		}
 	}//end async function bpConnect()
 
 	function playBackgroundAudio(){
@@ -187,11 +227,12 @@
 		}//end if(window.HTMLAudioElement)
 	}//end function playBackgroundAudio
 
-	function playClipAudio(clipNumber){
+	function playClipAudio(evt){
 
 		if(window.HTMLAudioElement){
 			try{
-				var cAudio = document.getElementById(clipSounds[clipNumber][2]);
+				var cAudio = document.getElementById(evt.target.id+"Sound");
+				console.log(cAudio);
 				cAudio.play();
 
 			}//end try
@@ -245,10 +286,20 @@
 	}//end function playAudio()
 
 
-	async function scanForDevices() {
+	async function bpScan() {
 	
-	  // Now that everything is set up, we can scan.
-	  await client.startScanning();
+		button = document.getElementById("scanButton");
+
+		if (button.textContent == "Scan"){
+		  // Now that everything is set up, we can scan.
+		  await client.startScanning();
+			button.textContent = "Stop Scanning";
+		}
+		else{
+			await client.stopScanning();
+			button.textContent = "Scan";
+		}
+
 	};
 
 	</script>
@@ -260,6 +311,14 @@
 
 	</header>
 	<div class="wrapper">
+		<div class="row">
+			<div class="p-2 col-lg-4 col-md-4 col-sm-12" name="bpioCon" id="bpioCon">
+			<label for="intifaceAddr">Intiface Address: </label>
+			<input type="text" id="intifaceAddr" name="intifaceAddr" value="ws://localhost:12345" size="40" minlength="8">
+			<button class="btn btn-outline-secondary btn-lg" id="connectButton" onclick="bpConnect()">Connect</button>
+			<button class="btn btn-outline-secondary btn-lg" id="scanButton" onclick="bpScan()" disabled >Scan</button>
+			</div>
+		</div>
 		<div class="row">
 			<div class="p-2 col-lg-4 col-md-4 col-sm-12" name="bkgrSndCon" id="bkgrSndCon">
 			</div>
