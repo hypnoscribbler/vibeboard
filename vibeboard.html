@@ -1,0 +1,276 @@
+<html>
+<head>
+	<title>vibeboard</title>
+	<!-- Change library version here to match current NPM version -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<script lang="javascript" 
+	   src="https://cdn.jsdelivr.net/npm/buttplug@1.0.17/dist/web/buttplug.min.js">
+	</script>
+<!--	<script lang="javascript">
+	  Buttplug.buttplugInit().then(() => console.log("Library loaded"));
+	</script> -->
+	<script lang="javascript">
+
+	var ready = (callback) => {
+    	if (document.readyState != "loading") callback();
+        	else document.addEventListener("DOMContentLoaded", callback);
+	}
+	ready(() => {
+	    var headerHeight = window.innerHeight / 15;
+	    document.querySelector(".header").style.height = headerHeight + "px";
+	    })
+
+	var client;
+	var connector;
+	var backgroundSounds = [["./sounds/background/white-noise.mp3", "White Noise"],
+	["./sounds/background/pink-noise.mp3", "Pink Noise"],
+	["./sounds/background/binaural-204Hz.mp3", "Binaural 204Hz"],
+	["./sounds/background/binaural-154hz.mp3", "Binaural 154Hz"]];
+
+	clipSounds = [["./sounds/clips/chirp.mp3","Chirp", "clip0"],
+	["./sounds/clips/drum.mp3", "Drum", "clip1"],
+	["./sounds./clips/hawk.mp3", "Hawk", "clip2"]];
+
+	function readTemplate(){
+		var fileName = "template.txt";
+		let f = input.file
+
+	}
+
+	async function vbInit(){
+	  await Buttplug.buttplugInit();
+          const backgrSoundControl = document.getElementById("bkgrSndCon");
+          var backgrSndControlLabel = document.createElement('label');
+          backgrSndControlLabel.htmlFor = "bkgrSndSel";
+          backgrSndControlLabel.innerHTML = "Choose a Background Sound: ";
+
+          backgrSoundControl.appendChild(backgrSndControlLabel);
+          var backgrAudio = new Audio('./sounds/background/white-noise.mp3');
+	  backgrAudio.id = "bkgrAudio";
+          backgrSoundControl.appendChild(backgrAudio);
+
+          var backgrSoundSelector = document.createElement('select');
+          backgrSoundSelector.name = "bkgrSndSel";
+          backgrSoundSelector.id = "bkgrSndSel";
+          backgrSoundControl.appendChild(backgrSoundSelector);
+          
+          for (var i in backgroundSounds){
+                 backgrSound = document.createElement('option');
+                 backgrSoundText = document.createTextNode(backgroundSounds[i][1]);
+                 backgrSound.appendChild(backgrSoundText);
+                 backgrSound.setAttribute('value', backgroundSounds[i][0]);
+                 backgrSoundSelector.appendChild(backgrSound);
+          }
+
+	  backgrPlayBtn = document.createElement('button');
+	  backgrPlayBtn.textContent = ('Play');
+	  backgrPlayBtn.id = "bkgrPlayBtn";
+	  backgrPlayBtn.className = "btn btn-outline-secondary btn-lg";
+	  backgrPlayBtn.addEventListener('click', playBackgroundAudio);
+	  backgrSoundControl.appendChild(backgrPlayBtn);
+	  backgrLoopLabel = document.createElement('label');
+	  backgrLoopLabel.htmlFor="bkgrLoopOption";
+	  backgrLoopLabel.innerHTML="Loop ";
+	  backgrSoundControl.appendChild(backgrLoopLabel);
+	  backgrLoopCheckbox = document.createElement('input');
+	  backgrLoopCheckbox.type = 'checkbox';
+	  backgrLoopCheckbox.checked = 'true';
+	  backgrLoopCheckbox.id = "bkgrLoopCheckbox";
+	  backgrLoopCheckbox.name = "bkgrLoopCheckbox";
+	  backgrLoopCheckbox.value = "yes";
+	  backgrLoopLabel.appendChild(backgrLoopCheckbox);
+
+          //add clip buttons
+	  const  clipButtons = document.getElementById("clipButtons");
+	  
+	  for (var j in clipSounds){
+
+		var clipControlLabel = document.createElement('label');
+		clipControlLabel.htmlFor = clipSounds[j][2];
+		clipControlLabel.innerHTML = clipSounds[j][1];
+		clipButtons.appendChild(clipControlLabel);
+		var clipAudio = new Audio(clipSounds[j][0]);
+		clipButtons.append(clipAudio);
+		clipButton = document.createElement('button');
+		clipButton.className="btn btn-outline-secondary btn-lg";
+		clipButton.textContent = ('Play');
+		clipButton.addEventListener('click', playClipAudio(j));
+		clipButtons.appendChild(clipButton);
+
+	  }//end for (var j in clipSounds)
+
+//          backgrSoundControl.insertBefore(backgrSndControlLabel, backgrSoundSelector);
+          }
+
+	async function bpConnect(){
+
+	  var serverAddress = document.getElementById("bpcs");
+	  client = new Buttplug.ButtplugClient("Vibeboard");
+          var button = document.getElementById("connect");
+
+
+	  // Set up our DeviceAdded/DeviceRemoved event handlers before connecting. If
+	  // devices are already held to the server when we connect to it, we'll get
+	  // "deviceadded" events on successful connect.
+	  client.addListener("deviceadded", (device) => {
+	    console.log(`Device Connected: ${device.Name}`);
+	    console.log("Client currently knows about these devices:");
+	    client.Devices.forEach((device) => console.log(`- ${device.Name}`));
+	  });
+	  client
+	    .addListener("deviceremoved", (device) => console.log(`Device Removed: ${device.Name}`));
+	
+	  // After you've created a connector, the connection looks the same no
+	  // matter what, though the errors thrown may be different.
+	  let connector = new Buttplug.ButtplugWebsocketConnectorOptions();
+	
+	  // This is the default insecure address for Intiface Desktop
+	  // (https://intiface.com/desktop). You can connect to it via Chrome, but
+	  // Safari/Firefox will require secure certs (covered later).
+	  connector.address = serverAddress;
+	
+	  // Now we connect. If anything goes wrong here, we'll either throw
+	  //
+	  // - A ButtplugClientConnectionException if there's a problem with
+	  //   the Connector, like the network address being wrong, server not
+	  //   being up, etc.
+	  // - A ButtplugHandshakeException if there is a client/server version
+	  //   mismatch.
+	  try {
+	    await client.connect(connector);
+	  }
+	  catch (ex)
+	  {
+	    // If our connection failed, because the server wasn't turned on, SSL/TLS
+	    // wasn't turned off, etc, we'll just print and exit here. This will most
+	    // likely be a wrapped exception.
+	    //
+	    // This could also mean our client is newer than our server, and we need to
+	    // upgrade the server we're connecting to.
+	    console.log(ex);
+	  }
+	
+          console.log("Connected!"); 
+          button.txtContent = "Disconnect";
+	}//end async function bpConnect()
+
+	function playBackgroundAudio(){
+
+		if(window.HTMLAudioElement){
+
+			try{
+				var bAudio = document.getElementById("bkgrAudio");
+				var backgrSoundSelector = document.getElementById("bkgrSndSel");
+				var backgrLoopCheckbox = document.getElementById("bkgrLoopCheckbox");
+				var backgrPlayBtn = document.getElementById("bkgrPlayBtn");
+	
+				if(backgrPlayBtn.textContent == "Play"){
+					bAudio.src =  backgrSoundSelector.value;
+					bAudio.loop = backgrLoopCheckbox.checked;
+					bAudio.play();
+					backgrPlayBtn.textContent = "Pause";
+				}
+				else{
+					bAudio.pause();
+					backgrPlayBtn.textContent = "Play";
+				}
+				
+			}//end try
+
+			catch(e){
+	
+				if(window.console && console.error("Error:" + e));
+	
+			}//end catch(e)
+
+		}//end if(window.HTMLAudioElement)
+	}//end function playBackgroundAudio
+
+	function playClipAudio(clipNumber){
+
+		if(window.HTMLAudioElement){
+			try{
+				var cAudio = document.getElementById(clipSounds[clipNumber][2]);
+				cAudio.play();
+
+			}//end try
+			catch(e){
+	
+				if(window.console && console.error("Error:" + e));
+	
+			}//end catch(e)
+
+		}//end if(window.HTMLAudioElement)
+
+	}//end function playClipAudio()
+
+	function playAudio(audioElement, btnName, audioFile){
+		if(window.HTMLAudioElement){
+			console.log(audioElement);
+			console.log(btnName);
+			console.log(audioFile);
+	
+			try{
+	
+				var oAudio = document.getElementById(audioElement);
+				var btn = document.getElementById(btnName);
+	
+				if (oAudio.currentSrc == ""){
+					oAudio.src = audioFile;
+				}
+				console.log(oAudio.src);
+	
+				if(oAudio.paused){
+					console.log(oAudio.paused);
+					oAudio.play();
+					btn.textContent = "Pause";
+					console.log("if");
+					console.log(oAudio.paused);
+				}
+				else{
+					oAudio.pause();
+					btn.textContent = "Play";
+					console.log("else");
+				}
+			}//end try
+			catch(e){
+	
+				if(window.console && console.error("Error:" + e));
+	
+			}//end catch(e)
+	
+		}//if(window.HTMLAudioElement)
+	
+	}//end function playAudio()
+
+
+	async function scanForDevices() {
+	
+	  // Now that everything is set up, we can scan.
+	  await client.startScanning();
+	};
+
+	</script>
+
+</head>
+<body onload="vbInit()">
+	<header class="page-header header container-fluid">
+	<div class="description"><h1>VibeBoard<h1></div>
+
+	</header>
+	<div class="wrapper">
+		<div class="row">
+			<div class="p-2 col-lg-4 col-md-4 col-sm-12" name="bkgrSndCon" id="bkgrSndCon">
+			</div>
+		</div>
+		<div class="row">
+			<div class="p-2 col-lg-12 col-md-12 col-sm-12", name="clipButtons", id="clipButtons">
+			</div> 
+		</div>
+	</div> <!-- end wrapper -->
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>
