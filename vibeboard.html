@@ -116,12 +116,75 @@
 
   }
 
+	function addDevice(device){
+
+				console.log("here");
+				console.log(device.Name);
+				console.log(device.Index);
+
+				var bpioControlDiv = document.getElementById("bpioCon");
+
+				var bpioIntensitySlider = document.createElement("input");
+				bpioIntensitySlider.type = "range"
+				bpioIntensitySlider.class = "form-range";
+				bpioIntensitySlider.min = "0";
+				bpioIntensitySlider.max ="100";
+				bpioIntensitySlider.id = device.Index + ":Intensity";
+
+				var bpioIntensitySliderLabel = document.createElement("label");
+				bpioIntensitySliderLabel.htmlFor = device.Index + ":Intensity";
+				bpioIntensitySliderLabel.innerHTML = device.Name + " Intensity";
+
+				var bpioIntensitySliderDiv = document.createElement("div");
+				bpioIntensitySliderDiv.class ="range";
+
+				var bpioDeviceButton = document.createElement("button");
+				bpioDeviceButton.className="btn btn-outline-secondary btn-lg";
+				bpioDeviceButton.textContent = "Start";
+				bpioDeviceButton.id = device.Index + ":Button";
+
+				bpioDeviceButton.addEventListener('click', buzzDevice);
+				
+				bpioControlDiv.appendChild(bpioIntensitySliderLabel);
+				bpioControlDiv.appendChild(bpioIntensitySliderDiv);
+				bpioIntensitySliderDiv.appendChild(bpioIntensitySlider);
+				bpioControlDiv.appendChild(bpioDeviceButton);
+			  devices[device.Index] = device.Name;
+
+	}
+
+
+	async function buzzDevice(evt){
+
+		var deviceIndex = evt.target.id.split(':')[0];	
+		var deviceNumber = parseInt(deviceIndex) - 1;
+		var intensity = document.getElementById(deviceIndex + ":Intensity").value;
+		var device = client.Devices[deviceNumber];
+		if (evt.target.textContent == "Start"){
+			try {
+
+				await device.vibrate(intensity/100);
+	
+			}
+			catch (e) {
+				console.log(e);
+				if (e instanceof Buttplug.ButtplugDeviceError) {
+					console.log("Got a device error!");
+				}
+			}
+		evt.target.textContent = "Stop";
+		}
+		else{
+			await device.stop();
+			evt.target.id.textContent = "Start";
+		}
+	}//end async function buzzDevice(evt)
+
 	async function bpConnect(){
 
 	  var button = document.getElementById("connectButton");
 		var scanButton = document.getElementById("scanButton");
 
-		var bpioControlDiv = document.getElementById("bpioCon");
 
 		if (button.textContent == "Connect"){
 		  var serverAddress = document.getElementById("intifaceAddr");
@@ -135,11 +198,7 @@
 		    console.log(`Device Connected: ${device.Name}`);
 		    console.log("Client currently knows about these devices:");
 		    client.Devices.forEach((device) => console.log(`- ${device.Index}: ${device.Name}`));
-				var bpioDeviceControl = document.createElement("button");
-				bpioDeviceControl.textContent = device.Name;
-				bpioDeviceControl.id = device.Name;
-				bpioControlDiv.appendChild(bpioDeviceControl);
-			  devices[device.Index] = device.Name;
+				addDevice(device);
 		  });
 		  client
 		    .addListener("deviceremoved", (device) => { 
