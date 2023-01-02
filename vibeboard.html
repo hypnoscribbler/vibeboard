@@ -7,6 +7,9 @@
 	<script lang="javascript" 
 	   src="https://cdn.jsdelivr.net/npm/buttplug@1.0.17/dist/web/buttplug.min.js">
 	</script>
+	<script lang="javascript"
+	src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js">
+	</script>
 <!--	<script lang="javascript">
 	  Buttplug.buttplugInit().then(() => console.log("Library loaded"));
 	</script> -->
@@ -34,9 +37,9 @@
 	["./sounds/background/binaural-204Hz.mp3", "Binaural 204Hz"],
 	["./sounds/background/binaural-154Hz.mp3", "Binaural 154Hz"]];
 
-	var clipSounds = [["./sounds/clips/chirp.mp3","Chirp", "clip0"],
-	["./sounds/clips/drum.mp3", "Drum", "clip1"],
-	["./sounds/clips/hawk.mp3", "Hawk", "clip2"]];
+	var clipSounds = [["./sounds/clips/chirp.mp3","Chirp", "clip:0"],
+	["./sounds/clips/drum.mp3", "Drum", "clip:1"],
+	["./sounds/clips/hawk.mp3", "Hawk", "clip:2"]];
 
   var devices = [];
 
@@ -78,7 +81,7 @@
 	  backgrPlayBtn = document.createElement('button');
 	  backgrPlayBtn.textContent = ('Play');
 	  backgrPlayBtn.id = "bkgrPlayBtn";
-	  backgrPlayBtn.className = "btn btn-outline-secondary btn-lg";
+	  backgrPlayBtn.className = "btn btn-outline-secondary btn-lg p-1";
 	  backgrPlayBtn.addEventListener('click', playBackgroundAudio);
 	  backgrSoundControl.appendChild(backgrPlayBtn);
 	  backgrLoopLabel = document.createElement('label');
@@ -98,19 +101,38 @@
 	  
 	  for (var j in clipSounds){
 
+		var clipGroup = document.createElement('div');
+		clipGroup.class = "form-group";
+		clipGroup.id = "clip:" + j + ":Controls";
+		clipButtons.appendChild(clipGroup);
+		var clipSoundGroup = document.createElement('div');
+		clipSoundGroup.class = "form-group";
+		clipSoundGroup.id = "clip:" + j + ":Sounds";
+		clipGroup.appendChild(clipSoundGroup);
 		var clipControlLabel = document.createElement('label');
 		clipControlLabel.htmlFor = clipSounds[j][2];
 		clipControlLabel.innerHTML = clipSounds[j][1];
-		clipButtons.appendChild(clipControlLabel);
-		var clipAudio = new Audio(clipSounds[j][0]);
-		clipAudio.id=clipSounds[j][2] + "Sound";
-		clipButtons.append(clipAudio);
+		clipSoundGroup.appendChild(clipControlLabel);
 		clipButton = document.createElement('button');
 		clipButton.textContent = ('Play');
 		clipButton.id=clipSounds[j][2];
-		clipButton.className="btn btn-outline-secondary btn-lg";
+		clipButton.className="btn btn-outline-secondary btn-sm";
 		clipButton.addEventListener('click', playClipAudio);
-		clipButtons.appendChild(clipButton);
+		clipSoundGroup.appendChild(clipButton);
+		var clipVolume = document.createElement("input");
+		clipVolume.type = "range";
+		clipVolume.class = "form-range";
+		clipVolume.min = "0"
+		clipVolume.max = "100";
+		clipVolume.id = clipButton.id + "Volume";
+
+		var clipVolumeLabel = document.createElement("label");
+		clipVolumeLabel.htmlFor = clipVolume.id;
+		clipVolumeLabel.innerHTML = "Volume";
+		clipSoundGroup.appendChild(clipVolumeLabel);
+		clipSoundGroup.appendChild(clipVolume);
+
+
 
 	  }//end for (var j in clipSounds)
 
@@ -139,7 +161,7 @@
 				bpioIntensitySliderDiv.class ="range";
 
 				var bpioDeviceButton = document.createElement("button");
-				bpioDeviceButton.className="btn btn-outline-secondary btn-lg";
+				bpioDeviceButton.className="btn btn-outline-secondary btn-lg p-1";
 				bpioDeviceButton.textContent = "Start";
 				bpioDeviceButton.id = device.Index + ":Button";
 
@@ -151,6 +173,57 @@
 				bpioControlDiv.appendChild(bpioDeviceButton);
 			  devices[device.Index] = device.Name;
 
+				var numSounds = clipSounds.length;
+				for(var i = 0; i < numSounds; i++){
+					var clipGroup = document.getElementById("clip:" + i + ":Controls");
+
+					var clipGroupDevices = document.createElement("div");
+					clipGroupDevices.id = "clip:" + i + ":DeviceControl";
+					clipGroup.appendChild(clipGroupDevices);
+
+					var clipGroupDeviceDropdown = document.getElementById("clip:" + i + ":Dropdown");
+					if (clipGroupDeviceDropdown == null){
+						console.log("foo");
+						clipGroupDeviceLabel = document.createElement("label");
+						clipGroupDeviceLabel.htmlFor = "clip:" + i + ":Dropdown";
+						clipGroupDeviceLabel.innerHTML = "Associated Vibe";
+						clipGroupDeviceDropdown = document.createElement("select");
+						clipGroupDeviceDropdown.id = "clip:" + i + ":Dropdown";
+						var opt = document.createElement("option");
+						opt.text = device.Name;
+						opt.value = device.Index;
+						clipGroupDeviceDropdown.options.add(opt);
+						clipGroupDevices.appendChild(clipGroupDeviceLabel);
+						clipGroupDevices.appendChild(clipGroupDeviceDropdown);
+					}
+					else{
+						console.log("bar");
+						var opt = document.createElement("option");
+						opt.text = device.Name;
+						opt.value = device.Index;
+						clipGroupDeviceDropdown.options.add(opt);
+					}
+
+					var clipIntensitySlider = document.createElement("input");
+					clipIntensitySlider.type = "range"
+					clipIntensitySlider.class = "form-range";
+					clipIntensitySlider.min = "0";
+					clipIntensitySlider.max ="100";
+					clipIntensitySlider.id = device.Index + ":Intensity";
+	
+					var clipIntensitySliderLabel = document.createElement("label");
+					clipIntensitySliderLabel.htmlFor = "clip" + i + ":Intensity";
+					clipIntensitySliderLabel.innerHTML = "Vibrator Intensity";
+	
+					var clipIntensitySliderDiv = document.createElement("div");
+					clipIntensitySliderDiv.class ="range";
+	
+					clipGroupDevices.appendChild(clipIntensitySliderLabel);
+					clipGroupDevices.appendChild(clipIntensitySliderDiv);
+					clipIntensitySliderDiv.appendChild(clipIntensitySlider);
+					
+
+				}//end for(var i = 0; i < numSounds; i++){
 	}
 
 
@@ -176,7 +249,7 @@
 		}
 		else{
 			await device.stop();
-			evt.target.id.textContent = "Start";
+			evt.target.textContent = "Start";
 		}
 	}//end async function buzzDevice(evt)
 
@@ -288,20 +361,26 @@
 
 	function playClipAudio(evt){
 
-		if(window.HTMLAudioElement){
-			try{
-				var cAudio = document.getElementById(evt.target.id+"Sound");
-				console.log(cAudio);
-				cAudio.play();
-
-			}//end try
-			catch(e){
-	
-				if(window.console && console.error("Error:" + e));
-	
-			}//end catch(e)
-
-		}//end if(window.HTMLAudioElement)
+		var soundIndex = parseInt(evt.target.id.split(":")[1]);
+//		clipSounds[soundIndex][3].play();
+		var soundVolume = document.getElementById("clip:"+soundIndex+"Volume");
+		var sound = new Howl ({ src: [clipSounds[soundIndex][0]], 
+			autoplay: false, loop: false, volume: parseInt(soundVolume.value)/100 });
+		sound.play();
+//		if(window.HTMLAudioElement){
+//			try{
+//				var cAudio = document.getElementById(evt.target.id+"Sound");
+//				console.log(cAudio);
+//				cAudio.play();
+//
+//			}//end try
+//			catch(e){
+//	
+//				if(window.console && console.error("Error:" + e));
+//	
+//			}//end catch(e)
+//
+//		}//end if(window.HTMLAudioElement)
 
 	}//end function playClipAudio()
 

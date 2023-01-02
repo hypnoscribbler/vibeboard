@@ -19,4 +19,7 @@ body {
 	padding: 1em;
 	position: relative;
 }
-
+label {
+	margin-left: 14px;
+	margin-right: 14px;
+}
