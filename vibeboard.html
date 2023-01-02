@@ -209,10 +209,10 @@
 					clipIntensitySlider.class = "form-range";
 					clipIntensitySlider.min = "0";
 					clipIntensitySlider.max ="100";
-					clipIntensitySlider.id = device.Index + ":Intensity";
+					clipIntensitySlider.id = "clip:" + i + ":Intensity";
 	
 					var clipIntensitySliderLabel = document.createElement("label");
-					clipIntensitySliderLabel.htmlFor = "clip" + i + ":Intensity";
+					clipIntensitySliderLabel.htmlFor = "clip:" + i + ":Intensity";
 					clipIntensitySliderLabel.innerHTML = "Vibrator Intensity";
 	
 					var clipIntensitySliderDiv = document.createElement("div");
@@ -252,6 +252,23 @@
 			evt.target.textContent = "Start";
 		}
 	}//end async function buzzDevice(evt)
+
+	async function buzzVibeOneSec(deviceNumber, intensity){
+
+		var device = client.Devices[deviceNumber];
+		console.log(intensity);
+		console.log(deviceNumber);
+
+		try {
+			await device.vibrate(intensity/100);
+		}
+		catch (e) {
+			console.log(e);
+		}
+		await new Promise(r => setTimeout(r, 1000));
+		await device.stop();
+
+	}//end async function buzzVibeOneSec(deviceNumber, intensity)
 
 	async function bpConnect(){
 
@@ -362,25 +379,18 @@
 	function playClipAudio(evt){
 
 		var soundIndex = parseInt(evt.target.id.split(":")[1]);
-//		clipSounds[soundIndex][3].play();
 		var soundVolume = document.getElementById("clip:"+soundIndex+"Volume");
 		var sound = new Howl ({ src: [clipSounds[soundIndex][0]], 
-			autoplay: false, loop: false, volume: parseInt(soundVolume.value)/100 });
+			autoplay: false, loop: false, volume: parseInt(soundVolume.value)/100, 
+		onend: function() {
+			var deviceIndex = document.getElementById("clip:" + soundIndex + ":Dropdown").value;
+			var deviceNumber = parseInt(deviceIndex);
+			var intensity = document.getElementById("clip:" + soundIndex + ":Intensity").value;
+			buzzVibeOneSec(deviceNumber, intensity);
+			}
+			});
 		sound.play();
-//		if(window.HTMLAudioElement){
-//			try{
-//				var cAudio = document.getElementById(evt.target.id+"Sound");
-//				console.log(cAudio);
-//				cAudio.play();
-//
-//			}//end try
-//			catch(e){
-//	
-//				if(window.console && console.error("Error:" + e));
-//	
-//			}//end catch(e)
-//
-//		}//end if(window.HTMLAudioElement)
+		
 
 	}//end function playClipAudio()
 
