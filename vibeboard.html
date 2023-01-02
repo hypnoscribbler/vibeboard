@@ -195,6 +195,23 @@
 						clipGroupDeviceDropdown.options.add(opt);
 						clipGroupDevices.appendChild(clipGroupDeviceLabel);
 						clipGroupDevices.appendChild(clipGroupDeviceDropdown);
+						var clipIntensitySlider = document.createElement("input");
+						clipIntensitySlider.type = "range"
+						clipIntensitySlider.class = "form-range";
+						clipIntensitySlider.min = "0";
+						clipIntensitySlider.max ="100";
+						clipIntensitySlider.id = "clip:" + i + ":Intensity";
+		
+						var clipIntensitySliderLabel = document.createElement("label");
+						clipIntensitySliderLabel.htmlFor = "clip:" + i + ":Intensity";
+						clipIntensitySliderLabel.innerHTML = "Vibrator Intensity";
+		
+						var clipIntensitySliderDiv = document.createElement("div");
+						clipIntensitySliderDiv.class ="range";
+		
+						clipGroupDevices.appendChild(clipIntensitySliderLabel);
+						clipGroupDevices.appendChild(clipIntensitySliderDiv);
+						clipIntensitySliderDiv.appendChild(clipIntensitySlider);
 					}
 					else{
 						console.log("bar");
@@ -204,23 +221,6 @@
 						clipGroupDeviceDropdown.options.add(opt);
 					}
 
-					var clipIntensitySlider = document.createElement("input");
-					clipIntensitySlider.type = "range"
-					clipIntensitySlider.class = "form-range";
-					clipIntensitySlider.min = "0";
-					clipIntensitySlider.max ="100";
-					clipIntensitySlider.id = "clip:" + i + ":Intensity";
-	
-					var clipIntensitySliderLabel = document.createElement("label");
-					clipIntensitySliderLabel.htmlFor = "clip:" + i + ":Intensity";
-					clipIntensitySliderLabel.innerHTML = "Vibrator Intensity";
-	
-					var clipIntensitySliderDiv = document.createElement("div");
-					clipIntensitySliderDiv.class ="range";
-	
-					clipGroupDevices.appendChild(clipIntensitySliderLabel);
-					clipGroupDevices.appendChild(clipIntensitySliderDiv);
-					clipIntensitySliderDiv.appendChild(clipIntensitySlider);
 					
 
 				}//end for(var i = 0; i < numSounds; i++){
