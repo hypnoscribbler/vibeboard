@@ -41,6 +41,7 @@
 	["./sounds/clips/drum.mp3", "Drum", "clip:1"],
 	["./sounds/clips/hawk.mp3", "Hawk", "clip:2"]];
 
+
   var devices = [];
 
 	function readTemplate(){
@@ -95,16 +96,42 @@
 	  backgrLoopCheckbox.name = "bkgrLoopCheckbox";
 	  backgrLoopCheckbox.value = "yes";
 	  backgrLoopLabel.appendChild(backgrLoopCheckbox);
+		var backgrVolume = document.createElement("input");
+
+		backgrVolume.type = "range";
+		backgrVolume.class = "form-range";
+		backgrVolume.min = "0"
+		backgrVolume.max = "100";
+		backgrVolume.id = "bkgrVolume";
+
+		var backgrVolumeLabel = document.createElement("label");
+		backgrVolumeLabel.htmlFor = backgrVolume.id;
+		backgrVolumeLabel.innerHTML = "Volume";
+		backgrSoundControl.appendChild(backgrVolumeLabel);
+		backgrSoundControl.appendChild(backgrVolume);
 
           //add clip buttons
 	  const  clipButtons = document.getElementById("clipButtons");
 	  
 	  for (var j in clipSounds){
 
+		var clipContainer = document.createElement('div');
+		clipContainer.id = "clip:" + j + ":Container";
+		clipContainer.class = "container-fluid";
+
+		clipButtons.appendChild(clipContainer);
+
+		var clipControlsRow = document.createElement('div');
+		clipControlsRow.id = "clip:" + j + ":ControlsRow";
+		clipContainer.class = "row";
+
+		clipContainer.appendChild(clipControlsRow);
+
 		var clipGroup = document.createElement('div');
+
 		clipGroup.class = "form-group";
 		clipGroup.id = "clip:" + j + ":Controls";
-		clipButtons.appendChild(clipGroup);
+		clipControlsRow.appendChild(clipGroup);
 		var clipSoundGroup = document.createElement('div');
 		clipSoundGroup.class = "form-group";
 		clipSoundGroup.id = "clip:" + j + ":Sounds";
@@ -175,11 +202,21 @@
 
 				var numSounds = clipSounds.length;
 				for(var i = 0; i < numSounds; i++){
-					var clipGroup = document.getElementById("clip:" + i + ":Controls");
+					var clipContainer = document.getElementById("clip:" + i + ":Container");
 
-					var clipGroupDevices = document.createElement("div");
-					clipGroupDevices.id = "clip:" + i + ":DeviceControl";
-					clipGroup.appendChild(clipGroupDevices);
+					var clipDeviceSelectorRow = document.createElement('div');
+					clipDeviceSelectorRow.id = "clip:" + i + ":DeviceSelectorRow";
+					clipDeviceSelectorRow.class = "row";
+					clipContainer.appendChild(clipDeviceSelectorRow);
+
+					var clipDeviceIntensityRow = document.createElement('div');
+					clipDeviceIntensityRow.id = "clip:" + i + ":DeviceIntensityRow";
+					clipDeviceIntensityRow.class = "row";
+					clipContainer.appendChild(clipDeviceIntensityRow);
+
+					//var clipGroupDevices = document.createElement("div");
+					//clipGroupDevices.id = "clip:" + i + ":DeviceControl";
+					//clipDeviceRow.appendChild(clipGroupDevices);
 
 					var clipGroupDeviceDropdown = document.getElementById("clip:" + i + ":Dropdown");
 					if (clipGroupDeviceDropdown == null){
@@ -193,8 +230,9 @@
 						opt.text = device.Name;
 						opt.value = device.Index;
 						clipGroupDeviceDropdown.options.add(opt);
-						clipGroupDevices.appendChild(clipGroupDeviceLabel);
-						clipGroupDevices.appendChild(clipGroupDeviceDropdown);
+						clipDeviceSelectorRow.appendChild(clipGroupDeviceLabel);
+						clipDeviceSelectorRow.appendChild(clipGroupDeviceDropdown);
+
 						var clipIntensitySlider = document.createElement("input");
 						clipIntensitySlider.type = "range"
 						clipIntensitySlider.class = "form-range";
@@ -208,9 +246,8 @@
 		
 						var clipIntensitySliderDiv = document.createElement("div");
 						clipIntensitySliderDiv.class ="range";
-		
-						clipGroupDevices.appendChild(clipIntensitySliderLabel);
-						clipGroupDevices.appendChild(clipIntensitySliderDiv);
+						clipDeviceIntensityRow.appendChild(clipIntensitySliderLabel);
+						clipDeviceIntensityRow.appendChild(clipIntensitySliderDiv);
 						clipIntensitySliderDiv.appendChild(clipIntensitySlider);
 					}
 					else{
@@ -221,8 +258,6 @@
 						clipGroupDeviceDropdown.options.add(opt);
 					}
 
-					
-
 				}//end for(var i = 0; i < numSounds; i++){
 	}
 
@@ -230,7 +265,7 @@
 	async function buzzDevice(evt){
 
 		var deviceIndex = evt.target.id.split(':')[0];	
-		var deviceNumber = parseInt(deviceIndex) - 1;
+		var deviceNumber = parseInt(deviceIndex);
 		var intensity = document.getElementById(deviceIndex + ":Intensity").value;
 		var device = client.Devices[deviceNumber];
 		if (evt.target.textContent == "Start"){
@@ -344,20 +379,32 @@
 		}
 	}//end async function bpConnect()
 
-	function playBackgroundAudio(){
+	function playBackgroundAudio(evt){
+
 
 		if(window.HTMLAudioElement){
+
+//			var backgrSoundSelector = document.getElementById("bkgrSndSel");
+//			var backgrLoopCheckbox = document.getElementById("bkgrLoopCheckbox");
+//			var volSlider = document.getElementById("bkgrVolume");
+//			var soundVolume = parseInt(volSlider.value/100);
+//			var bkgrSound = new Howl({src: [backgrSoundSelector.value], autoplay: false,
+//				loop: backgrLoopCheckbox.checked, });
+//				bkgrSound.play();
 
 			try{
 				var bAudio = document.getElementById("bkgrAudio");
 				var backgrSoundSelector = document.getElementById("bkgrSndSel");
 				var backgrLoopCheckbox = document.getElementById("bkgrLoopCheckbox");
 				var backgrPlayBtn = document.getElementById("bkgrPlayBtn");
+				var volSlider = document.getElementById("bkgrVolume");
 	
+				console.log(volSlider.value);
 				if(backgrPlayBtn.textContent == "Play"){
 					bAudio.src =  backgrSoundSelector.value;
 					bAudio.loop = backgrLoopCheckbox.checked;
-					bAudio.play();
+					bAudio.volume = volSlider.value/100;
+  				bAudio.play();
 					backgrPlayBtn.textContent = "Pause";
 				}
 				else{
