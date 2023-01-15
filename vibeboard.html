@@ -59,7 +59,7 @@
           const backgrSoundControl = document.getElementById("bkgrSndCon");
           var backgrSndControlLabel = document.createElement('label');
           backgrSndControlLabel.htmlFor = "bkgrSndSel";
-          backgrSndControlLabel.innerHTML = "Choose a Background Sound: ";
+          backgrSndControlLabel.innerHTML = "Background Sound: ";
 
           backgrSoundControl.appendChild(backgrSndControlLabel);
           var backgrAudio = new Audio('./sounds/background/white-noise.mp3');
@@ -117,38 +117,70 @@
 
 		var clipContainer = document.createElement('div');
 		clipContainer.id = "clip:" + j + ":Container";
-		clipContainer.class = "container-fluid";
+		clipContainer.className = "container-fluid";
 
 		clipButtons.appendChild(clipContainer);
 
+		var clipLabelRow = document.createElement('div');
+		clipLabelRow.id = "clip:" + j + ":LabelRow";
+		clipLabelRow.className = "row text-center";
+
+		clipContainer.appendChild(clipLabelRow);
+
+		clipLabel = document.createElement('h3');
+		clipLabel.innerHTML = clipSounds[j][1];
+
+		clipLabelRow.appendChild(clipLabel);
+
 		var clipControlsRow = document.createElement('div');
 		clipControlsRow.id = "clip:" + j + ":ControlsRow";
-		clipContainer.class = "row";
+		clipControlsRow.className = "row row-cols-2";
 
 		clipContainer.appendChild(clipControlsRow);
 
+		var clipButtonCol = document.createElement('div');
+		clipButtonCol.className = "col";
+
+		clipControlsRow.appendChild(clipButtonCol);
+		
+		var clipControlsCol = document.createElement('div');
+		clipControlsCol.className = "col";
+		clipControlsCol.id = "clip:" + j + ":ControlsCol";
+		clipControlsRow.appendChild(clipControlsCol);
+
+
 		var clipGroup = document.createElement('div');
 
-		clipGroup.class = "form-group";
+		clipGroup.className = "form-group";
 		clipGroup.id = "clip:" + j + ":Controls";
 		clipControlsRow.appendChild(clipGroup);
 		var clipSoundGroup = document.createElement('div');
-		clipSoundGroup.class = "form-group";
+		clipSoundGroup.className = "form-group";
 		clipSoundGroup.id = "clip:" + j + ":Sounds";
 		clipGroup.appendChild(clipSoundGroup);
-		var clipControlLabel = document.createElement('label');
-		clipControlLabel.htmlFor = clipSounds[j][2];
-		clipControlLabel.innerHTML = clipSounds[j][1];
-		clipSoundGroup.appendChild(clipControlLabel);
+//		var clipControlLabel = document.createElement('label');
+//		clipControlLabel.htmlFor = clipSounds[j][2];
+//		clipControlLabel.innerHTML = clipSounds[j][1];
+//		clipSoundGroup.appendChild(clipControlLabel);
+		clipButtonDiv = document.createElement('div');
+		clipButtonDiv.className = "d-grid gap-2 h-100"; 
 		clipButton = document.createElement('button');
 		clipButton.textContent = ('Play');
 		clipButton.id=clipSounds[j][2];
-		clipButton.className="btn btn-outline-secondary btn-sm";
+		clipButton.className="btn h-100 btn-outline-secondary btn-block";
+		clipButton.type = "button";
 		clipButton.addEventListener('click', playClipAudio);
-		clipSoundGroup.appendChild(clipButton);
+		clipButtonDiv.appendChild(clipButton);
+		clipButtonCol.appendChild(clipButtonDiv);
+
+		var clipVolumeRow = document.createElement('div');
+		clipVolumeRow.className = 'row';
+
+		clipControlsCol.appendChild(clipVolumeRow);
+
 		var clipVolume = document.createElement("input");
 		clipVolume.type = "range";
-		clipVolume.class = "form-range";
+		clipVolume.className = "form-range";
 		clipVolume.min = "0"
 		clipVolume.max = "100";
 		clipVolume.id = clipButton.id + "Volume";
@@ -156,8 +188,8 @@
 		var clipVolumeLabel = document.createElement("label");
 		clipVolumeLabel.htmlFor = clipVolume.id;
 		clipVolumeLabel.innerHTML = "Volume";
-		clipSoundGroup.appendChild(clipVolumeLabel);
-		clipSoundGroup.appendChild(clipVolume);
+		clipVolumeRow.appendChild(clipVolumeLabel);
+		clipVolumeRow.appendChild(clipVolume);
 
 
 
@@ -202,17 +234,17 @@
 
 				var numSounds = clipSounds.length;
 				for(var i = 0; i < numSounds; i++){
-					var clipContainer = document.getElementById("clip:" + i + ":Container");
+					var clipControlsCol = document.getElementById("clip:" + i + ":ControlsCol");
 
 					var clipDeviceSelectorRow = document.createElement('div');
 					clipDeviceSelectorRow.id = "clip:" + i + ":DeviceSelectorRow";
-					clipDeviceSelectorRow.class = "row";
-					clipContainer.appendChild(clipDeviceSelectorRow);
+					clipDeviceSelectorRow.className = "row";
+					clipControlsCol.appendChild(clipDeviceSelectorRow);
 
 					var clipDeviceIntensityRow = document.createElement('div');
 					clipDeviceIntensityRow.id = "clip:" + i + ":DeviceIntensityRow";
-					clipDeviceIntensityRow.class = "row";
-					clipContainer.appendChild(clipDeviceIntensityRow);
+					clipDeviceIntensityRow.className = "row";
+					clipControlsCol.appendChild(clipDeviceIntensityRow);
 
 					//var clipGroupDevices = document.createElement("div");
 					//clipGroupDevices.id = "clip:" + i + ":DeviceControl";
@@ -223,7 +255,7 @@
 						console.log("foo");
 						clipGroupDeviceLabel = document.createElement("label");
 						clipGroupDeviceLabel.htmlFor = "clip:" + i + ":Dropdown";
-						clipGroupDeviceLabel.innerHTML = "Associated Vibe";
+						clipGroupDeviceLabel.innerHTML = "Vibrator";
 						clipGroupDeviceDropdown = document.createElement("select");
 						clipGroupDeviceDropdown.id = "clip:" + i + ":Dropdown";
 						var opt = document.createElement("option");
@@ -235,17 +267,17 @@
 
 						var clipIntensitySlider = document.createElement("input");
 						clipIntensitySlider.type = "range"
-						clipIntensitySlider.class = "form-range";
+						clipIntensitySlider.className = "form-range";
 						clipIntensitySlider.min = "0";
 						clipIntensitySlider.max ="100";
 						clipIntensitySlider.id = "clip:" + i + ":Intensity";
 		
 						var clipIntensitySliderLabel = document.createElement("label");
 						clipIntensitySliderLabel.htmlFor = "clip:" + i + ":Intensity";
-						clipIntensitySliderLabel.innerHTML = "Vibrator Intensity";
+						clipIntensitySliderLabel.innerHTML = "Vibe Intensity";
 		
 						var clipIntensitySliderDiv = document.createElement("div");
-						clipIntensitySliderDiv.class ="range";
+						clipIntensitySliderDiv.className ="range";
 						clipDeviceIntensityRow.appendChild(clipIntensitySliderLabel);
 						clipDeviceIntensityRow.appendChild(clipIntensitySliderDiv);
 						clipIntensitySliderDiv.appendChild(clipIntensitySlider);
@@ -519,7 +551,7 @@
 			</div>
 		</div>
 		<div class="row">
-			<div class="p-2 col-lg-12 col-md-12 col-sm-12", name="clipButtons", id="clipButtons">
+			<div class="p-2 col-lg-5 col-md-5 col-sm-12", name="clipButtons", id="clipButtons">
 			</div> 
 		</div>
 	</div> <!-- end wrapper -->
